@@ -1,8 +1,8 @@
 # -----------------------------------------------------------------------------
 
-megabuild		= 0
+megabuild		= 1
 finalbuild		= 1
-attachdebugger	= 0
+attachdebugger	= 1
 
 # -----------------------------------------------------------------------------
 
@@ -141,13 +141,13 @@ ifeq ($(megabuild), 1)
 
 	m65 -l COM3 -F
 	mega65_ftp.exe -l COM3 -s 2000000 -c "cd /" \
-	-c "put D:\Mega\MegaUI\exe\disk.d81 megaui.d81"
+	-c "put D:\Mega\MegaSD\exe\disk.d81 megasd.d81"
 
 	m65 -l COM3 -F
 	m65 -l COM3 -T 'list'
 	m65 -l COM3 -T 'list'
 	m65 -l COM3 -T 'list'
-	m65 -l COM3 -T 'mount "megaui.d81"'
+	m65 -l COM3 -T 'mount "megasd.d81"'
 	m65 -l COM3 -T 'load "$$"'
 	m65 -l COM3 -T 'list'
 	m65 -l COM3 -T 'list'

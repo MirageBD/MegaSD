@@ -35,7 +35,17 @@ uifatview_draw
 
 		jsr uidraw_set_draw_position
 
-		jsr sdc_resetsequence
+		jsr sdc_readmbr
+		;bcs gotmbr
+
+		inc $d020
+		jmp *-3
+
+gotmbr
+
+		lda #$10
+		sta $d020
+		jmp *-3
 
 		ldz #$00
 		sta [uidraw_scrptr],z

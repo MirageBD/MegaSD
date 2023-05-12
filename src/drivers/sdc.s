@@ -2,49 +2,167 @@
 
 .define sdc_transferbuffer $0900
 
+.define sd_address_byte0	$d681
+.define sd_address_byte1	$d682
+.define sd_address_byte2	$d683
+.define sd_address_byte3	$d684
+
 sdcounter	.byte 0, 0, 0, 0
 
 ; ----------------------------------------------------------------------------------------------------
 
-sdc_resetsequence
-		lda #$00				; write $00 to $d680 to start reset
+sdc_readmbr
+        jsr sdc_resetsequence
+        bcs l7
+      	
+:		lda #$02
+		sta $d020
+		lda #$07
+		sta $d021
+		jmp :-
+        
+		rts
+
+l7		lda #$00										; MBR is sector 0
+		sta sd_address_byte0							; is $d681
+		sta sd_address_byte1							; is $d682
+		sta sd_address_byte2							; is $d683
+		sta sd_address_byte3							; is $d684
+
+		lda #$41										; set SDHC flag
 		sta $d680
-		lda #$01
+
+		jmp sdc_readsector
+
+; ----------------------------------------------------------------------------------------------------
+
+sdc_readsector											; Assumes fixed sector number (or byte address in case of SD cards) is loaded into $D681 - $D684
+        
+        lda $d680
+        and #$01
+        bne rsbusyfail
+
+        jmp rs4											; skipping the redoread-delay below
+
+redoread
+		; redo-read delay
+		; ldx #<msg_sdredoread							; when retrying, introduce a delay.  This seems to be needed often
+		; ldy #>msg_sdredoread							; when reading the first sector after SD card reset.
+		; jsr printmessage								; print out a debug message to indicate RE-reading (ie previous read failed)
+
+		ldx #$f0
+		ldy #$00
+		ldz #$00
+r1		inz
+		bne r1
+		iny
+		bne r1
+		inx
+		bne r1
+
+rs4
+		lda #$02										; ask for sector to be read
 		sta $d680
+		jsr sdtimeoutreset								; wait for sector to be read
 
-re2		jsr sd_wait_for_ready	; Wait for SD card to become ready
-		bcs re2done				; success, so return
-		bne re2					; not timed out, so keep trying
-		rts						; timeout, so return
+rs3		jsr sdreadytest
+		bcs rsread										; yes, sdcard is ready
+		bne rs3											; not ready, so check if ready now?
+		beq rereadsector								; Z was set, ie timeout
 
-re2done
-		;jsr sd_map_sectorbuffer
+rsread
+		ldx #$00
+:		lda $de00,x
+		sta $c000,x
+		inx
+		bne :-
 
-redone
+		ldx #$00
+:		lda $df00,x
+		sta $c100,x
+		inx
+		bne :-
+
+		;inc $d020										; this gets hit
+		;jmp *-3
+
 		sec
 		rts
 
-		lda #$40
+rereadsector
+		jsr sdc_resetsequence							; reset sd card and try again
+		jmp rs4
+
+rsbusyfail												; fail
+		; lda #dos_errorcode_read_timeout
+		; sta dos_error_code
+
+		lda #$02
+		sta $d020
+		jmp *-3
+
+		clc
+		rts
+
+; ----------------------------------------------------------------------------------------------------
 
 sd_wait_for_ready
 		jsr sdtimeoutreset
+
 sdwfrloop
 		jsr sdreadytest
 		bcc sdwfrloop
 		rts
 
-sdtimeoutreset:
-		lda #$00				; count to timeout value when trying to read from SD card
-		sta sdcounter+0			; (if it is too short, the SD card won't reset)
+sdc_resetsequence
+
+        lda #$c1										; First try resetting card 1 (external)
+        sta $d680
+
+		lda #$00										; write $00 to $d680 to start reset
+		sta $d680
+		lda #$01
+		sta $d680
+
+re2		jsr sd_wait_for_ready							; Wait for SD card to become ready
+		bcs re2done										; success, so return
+		bne re2											; not timed out, so keep trying
+		rts												; timeout, so return
+
+re2done
+		jsr sd_map_sectorbuffer
+
+redone
+		;lda #$b0
+		;sta $d020										; this gets hit
+		;jmp *-3
+
+		sec
+		rts
+
+sdwaitawhile
+		jsr sdtimeoutreset
+
+sw1		inc sdcounter+0
+		bne sw1
+		inc sdcounter+1
+		bne sw1
+		inc sdcounter+2
+		bne sw1
+		rts
+
+sdtimeoutreset
+		lda #$00										; count to timeout value when trying to read from SD card
+		sta sdcounter+0									; (if it is too short, the SD card won't reset)
 		sta sdcounter+1
 		lda #$f3
 		sta sdcounter+2
 		rts
 
-sdreadytest    
-		lda $d680				; check if SD card is ready, or if timeout has occurred
-		and #$03				; C is set if ready.
-		beq sdisready			; Z is set if timeout has occurred.
+sdreadytest
+		lda $d680										; check if SD card is ready, or if timeout has occurred
+		and #$03										; C is set if ready.
+		beq sdisready									; Z is set if timeout has occurred.
 		inc sdcounter+0
 		bne sr1
 		inc sdcounter+1
@@ -52,12 +170,45 @@ sdreadytest
 		inc sdcounter+2
 		bne sr1
 
-		lda #$00				; timeout - set Z
+		lda #$00										; timeout - set Z
 
 sr1		clc
 		rts
 
 sdisready:
+
+
+		;lda #$e0
+		;sta $d020
+		;jmp *-3
+
+
+		sec
+		rts
+
+; ----------------------------------------------------------------------------------------------------
+
+sd_map_sectorbuffer
+
+		lda #$01										; Clear colour RAM at $DC00 flag, as this prevents mapping of sector buffer at $de00
+		trb $d030
+
+		lda #$81										; Actually map the sector buffer
+		sta $d680
+
+		; put some data in $de00
+        ldx #$01
+        stx $de00
+        inx
+        stx $de01
+        inx
+        stx $de02
+        inx
+        stx $de03
+        lda $de00
+        lda $de01
+        lda $de02
+
 		sec
 		rts
 
