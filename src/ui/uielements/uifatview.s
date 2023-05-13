@@ -44,46 +44,29 @@ ufv_lineloop
 		ldz #$00
 
 ufv_ll1	jsr uifatview_drawbyte
-
-		lda #$a0
-		sta [uidraw_scrptr],z
-		inz
-		lda #$04
-		sta [uidraw_scrptr],z
-		inz
-
+		jsr uifatview_drawspace
 		iny
 		cpy #8
 		bne ufv_ll1
 
-		lda #$a0
-		sta [uidraw_scrptr],z
-		inz
-		lda #$04
-		sta [uidraw_scrptr],z
-		inz
-
-		lda #$a0
-		sta [uidraw_scrptr],z
-		inz
-		lda #$04
-		sta [uidraw_scrptr],z
-		inz
-
+		jsr uifatview_drawspace
+		jsr uifatview_drawspace
 
 ufv_ll2	jsr uifatview_drawbyte
-
-		lda #$a0
-		sta [uidraw_scrptr],z
-		inz
-		lda #$04
-		sta [uidraw_scrptr],z
-		inz
-
+		jsr uifatview_drawspace
 		iny
 		cpy #16
 		bne ufv_ll2
-		
+
+		jsr uifatview_drawspace
+		jsr uifatview_drawspace
+
+		ldy #$00
+ufv_ll3	jsr uifatview_drawchar
+		iny
+		cpy #16
+		bne ufv_ll3
+
 		jsr uidraw_increase_row
 
 		clc
@@ -100,6 +83,36 @@ ufv_ll2	jsr uifatview_drawbyte
 		jmp ufv_lineloop
 
 :   	rts
+
+; ----------------------------------------------------------------------------------------------------
+
+uifatview_drawspace
+		lda #$a0
+		sta [uidraw_scrptr],z
+		inz
+		lda #$04
+		sta [uidraw_scrptr],z
+		inz
+		rts
+
+; ----------------------------------------------------------------------------------------------------
+
+uifatview_drawchar
+		lda (zpptr2),y
+		bne :+
+		lda #$2e
+:		and #$3f
+		clc
+		adc #$80
+		sta [uidraw_scrptr],z
+		lda #$0f
+		sta [uidraw_colptr],z
+		inz
+		lda #$04
+		sta [uidraw_scrptr],z
+		inz
+
+		rts
 
 ; ----------------------------------------------------------------------------------------------------
 

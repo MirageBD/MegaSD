@@ -154,6 +154,13 @@ entry_main
 		jsr mouse_init									; initialise drivers
 		jsr ui_init										; initialise UI
 		jsr ui_setup
+		lda #$00
+		sta $c800+0
+		sta $c800+1
+		sta $c800+2
+		sta $c800+3
+		jsr userfunc_readsector
+		UICORE_CALLELEMENTFUNCTION fv1filebox, uifatview_draw
 
 		lda #$7f										; disable CIA interrupts
 		sta $dc0d

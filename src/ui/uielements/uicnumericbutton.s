@@ -189,6 +189,8 @@ uicnumericbutton_storevalue
 		dex
 		bne :-
 
+		jsr uielement_calluifunc
+
 		rts
 
 ; ----------------------------------------------------------------------------------------------------
