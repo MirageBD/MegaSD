@@ -30,18 +30,9 @@ uifatview_leave
 
 ; ----------------------------------------------------------------------------------------------------
 
-
 uifatview_draw
 
 		jsr uidraw_set_draw_position
-
-		jsr sdc_readmbr
-		bcs gotmbr
-
-		inc $d020
-		jmp *-3
-
-gotmbr
 
 		lda #<$c000
 		sta zpptr2+0

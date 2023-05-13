@@ -1,5 +1,7 @@
 .segment "TEXT"
 
+uitxt_readsector	.byte "read sector", 0
+
 uitxt_save			.byte "save", 0
 
 uitxt_finetune		.byte "finetune", 0

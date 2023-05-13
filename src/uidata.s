@@ -16,6 +16,7 @@ windows
 window0area
 		UIELEMENT_ADD fa1nineslice,				nineslice,			filearea1elements,		 1,  0, 38, 16,  0,		$ffff,						uidefaultflags
 		UIELEMENT_ADD fv1nineslice,				nineslice,			fatarea1elements,		 1, 16, 78, 34,  0,		$ffff,						uidefaultflags
+		UIELEMENT_ADD readsectorbutton,			ctextbutton,		$ffff,					64,  0, 15,  3,  0,		readsectorbutton_data,		uidefaultflags
 		UIELEMENT_END
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ scrollbar elements
@@ -33,10 +34,12 @@ fatarea1elements
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ scrollbar elements
 
-fa1scrollbar_data			.word fa1scrollbar_functions, 										0, 0, 20, fa1filebox			; start position, selection index, number of entries, ptr to list
-fa1filebox_data				.word fa1scrollbar_functions,			filebox1_functions,			fa1scrollbar_data, fa1boxtxt, fa1directorytxt
+fa1scrollbar_data				.word fa1scrollbar_functions, 										0, 0, 20, fa1filebox			; start position, selection index, number of entries, ptr to list
+fa1filebox_data					.word fa1scrollbar_functions,			filebox1_functions,			fa1scrollbar_data, fa1boxtxt, fa1directorytxt
 
-fv1_data					.word $ffff,							$ffff,						0
+fv1_data						.word $ffff,							$ffff,						0
+
+readsectorbutton_data			.word readsector_functions,				uitxt_readsector
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ listeners
 
@@ -47,10 +50,23 @@ fa1scrollbar_functions			.word fa1scrollbartrack,				uiscrolltrack_draw
 filebox1_functions				.word fa1filebox,						userfunc_openfile
 								.word $ffff
 
+readsector_functions			.word fv1filebox,						userfunc_readsector
+								.word fv1filebox,						uifatview_draw
+								.word $ffff
+
 ; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 userfunc_openfile
 		rts
+
+userfunc_readsector
+		jsr sdc_readmbr
+		bcs gotmbr
+
+		inc $d020
+		jmp *-3
+
+gotmbr	rts
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
