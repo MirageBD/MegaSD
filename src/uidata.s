@@ -14,8 +14,8 @@ windows
 ; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ child windows
 
 window0area
-		UIELEMENT_ADD fa1nineslice,				nineslice,			filearea1elements,		 1,  0, 38, 17,  0,		$ffff,						uidefaultflags
-		UIELEMENT_ADD fv1nineslice,				nineslice,			fatarea1elements,		 1, 20, 78, 20,  0,		$ffff,						uidefaultflags
+		UIELEMENT_ADD fa1nineslice,				nineslice,			filearea1elements,		 1,  0, 38, 16,  0,		$ffff,						uidefaultflags
+		UIELEMENT_ADD fv1nineslice,				nineslice,			fatarea1elements,		 1, 16, 78, 34,  0,		$ffff,						uidefaultflags
 		UIELEMENT_END
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ scrollbar elements

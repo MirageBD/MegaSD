@@ -7,13 +7,15 @@
 .define sd_address_byte2	$d683
 .define sd_address_byte3	$d684
 
+.define sd_sector_buffer	$c000
+
 sdcounter	.byte 0, 0, 0, 0
 
 ; ----------------------------------------------------------------------------------------------------
 
 sdc_readmbr
         jsr sdc_resetsequence
-        bcs l7
+		bcs l7
       	
 :		lda #$02
 		sta $d020
@@ -97,7 +99,7 @@ rsbusyfail												; fail
 		; lda #dos_errorcode_read_timeout
 		; sta dos_error_code
 
-		lda #$02
+		lda #$e0
 		sta $d020
 		jmp *-3
 
@@ -116,8 +118,8 @@ sdwfrloop
 
 sdc_resetsequence
 
-        lda #$c1										; First try resetting card 1 (external)
-        sta $d680
+		;lda #$c1										; First try resetting card 1 (external)
+        ;sta $d680
 
 		lda #$00										; write $00 to $d680 to start reset
 		sta $d680
@@ -125,6 +127,7 @@ sdc_resetsequence
 		sta $d680
 
 re2		jsr sd_wait_for_ready							; Wait for SD card to become ready
+
 		bcs re2done										; success, so return
 		bne re2											; not timed out, so keep trying
 		rts												; timeout, so return
