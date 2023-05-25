@@ -199,19 +199,6 @@ sd_map_sectorbuffer
 		lda #$81										; Actually map the sector buffer
 		sta $d680
 
-		; put some data in $de00
-        ldx #$01
-        stx $de00
-        inx
-        stx $de01
-        inx
-        stx $de02
-        inx
-        stx $de03
-        lda $de00
-        lda $de01
-        lda $de02
-
 		sec
 		rts
 

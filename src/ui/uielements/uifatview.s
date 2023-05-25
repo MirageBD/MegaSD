@@ -1,5 +1,9 @@
 ; ----------------------------------------------------------------------------------------------------
 
+uifatview_tmp	.dword 0
+
+; ----------------------------------------------------------------------------------------------------
+
 uifatview_layout
 		jsr uielement_layout
 
@@ -39,26 +43,54 @@ uifatview_draw
 		lda #>$c000
 		sta zpptr2+1
 
+		lda $c800+0
+		sta uifatview_tmp+0
+		lda $c800+1
+		sta uifatview_tmp+1
+		lda $c800+2
+		sta uifatview_tmp+2
+		lda $c800+3
+		sta uifatview_tmp+3
+
 ufv_lineloop
-		ldy #$00
+
 		ldz #$00
 
-ufv_ll1	jsr uifatview_drawbyte
+		lda uifatview_tmp+3
+		jsr uifatview_drawbytelo
+		lda uifatview_tmp+3
+		jsr uifatview_drawbytehi
+		lda uifatview_tmp+2
+		jsr uifatview_drawbytelo
+		lda uifatview_tmp+2
+		jsr uifatview_drawbytehi
+		lda uifatview_tmp+1
+		jsr uifatview_drawbytelo
+		lda uifatview_tmp+1
+		jsr uifatview_drawbytehi
+		lda uifatview_tmp+0
+		jsr uifatview_drawbytelo
+		lda uifatview_tmp+0
+		jsr uifatview_drawbytehi
+
+		jsr uifatview_drawspace
+		jsr uifatview_drawspace
+
+		ldy #$00
+ufv_ll1	jsr uifatview_drawcolouredbyte
 		jsr uifatview_drawspace
 		iny
 		cpy #8
 		bne ufv_ll1
 
 		jsr uifatview_drawspace
-		jsr uifatview_drawspace
 
-ufv_ll2	jsr uifatview_drawbyte
+ufv_ll2	jsr uifatview_drawcolouredbyte
 		jsr uifatview_drawspace
 		iny
 		cpy #16
 		bne ufv_ll2
 
-		jsr uifatview_drawspace
 		jsr uifatview_drawspace
 
 		ldy #$00
@@ -77,8 +109,22 @@ ufv_ll3	jsr uifatview_drawchar
 		adc #0
 		sta zpptr2+1
 
+		clc
+		lda uifatview_tmp+0
+		adc #16
+		sta uifatview_tmp+0
+		lda uifatview_tmp+1
+		adc #0
+		sta uifatview_tmp+1
+		lda uifatview_tmp+2
+		adc #0
+		sta uifatview_tmp+2
+		lda uifatview_tmp+3
+		adc #0
+		sta uifatview_tmp+3
+
 		lda zpptr2+1
-		cmp #$c2
+		cmp #>($c000 + $0200)
 		beq :+
 		jmp ufv_lineloop
 
@@ -100,13 +146,17 @@ uifatview_drawspace
 uifatview_drawchar
 		lda (zpptr2),y
 		bne :+
+		lda #$04
+		sta [uidraw_colptr],z
 		lda #$2e
+		bra :++
+:		lda #$0f
+		sta [uidraw_colptr],z
+		lda (zpptr2),y
 :		and #$3f
 		clc
 		adc #$80
 		sta [uidraw_scrptr],z
-		lda #$0f
-		sta [uidraw_colptr],z
 		inz
 		lda #$04
 		sta [uidraw_scrptr],z
@@ -116,7 +166,7 @@ uifatview_drawchar
 
 ; ----------------------------------------------------------------------------------------------------
 
-uifatview_drawbyte
+uifatview_drawcolouredbyte
 
 		lda (zpptr2),y
 		bne :+
@@ -167,6 +217,37 @@ uifatview_drawbyte
 		sta [uidraw_scrptr],z
 		inz
 
+		rts
+
+uifatview_drawbytelo
+
+		lsr
+		lsr
+		lsr
+		lsr
+		tax
+		lda hextodec_inverted,x
+		sta [uidraw_scrptr],z
+		lda #$39
+		sta [uidraw_colptr],z
+		inz
+		lda #$04
+		sta [uidraw_scrptr],z
+		inz
+		rts
+
+uifatview_drawbytehi
+
+		and #$0f
+		tax
+		lda hextodec_inverted,x
+		sta [uidraw_scrptr],z
+		lda #$39
+		sta [uidraw_colptr],z
+		inz
+		lda #$04
+		sta [uidraw_scrptr],z
+		inz
 		rts
 
 ; ----------------------------------------------------------------------------------------------------

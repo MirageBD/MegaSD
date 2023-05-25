@@ -1,6 +1,7 @@
 .segment "TEXT"
 
-uitxt_readsector	.byte "read sector", 0
+uitxt_sectorlo		.byte "sector lo", 0
+uitxt_sectorhi		.byte "sector hi", 0
 
 uitxt_save			.byte "save", 0
 
