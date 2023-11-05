@@ -18,7 +18,6 @@ filebuffer = $0200
 .include "drivers/mouse.s"
 .include "drivers/sdc.s"
 .include "drivers/keyboard.s"
-.include "drivers/audiodma.s"
 
 .include "ui/uicore.s"
 .include "ui/uirect.s"

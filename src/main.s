@@ -7,7 +7,6 @@
 .define sprptrs					$cd00
 .define sprites					$ce00
 .define kbsprites				$cf00
-.define emptychar				$ff80	; size = 64
 
 .define uichars					$10000	; $10000 - $14000     size = $4000
 .define glchars					$14000	; $14000 - $1d000     size = $9000
@@ -77,36 +76,6 @@ entry_main
 		sta $d058
 		lda #$00
 		sta $d059
-
-		ldx #$00
-		lda #$00
-:		sta emptychar,x
-		inx
-		cpx #64
-		bne :-
-
-		ldx #$00
-:		lda #<(emptychar/64)
-		sta screen+0*$0100+0,x
-		sta screen+1*$0100+0,x
-		sta screen+2*$0100+0,x
-		sta screen+3*$0100+0,x
-		sta screen+4*$0100+0,x
-		sta screen+5*$0100+0,x
-		sta screen+6*$0100+0,x
-		sta screen+7*$0100+0,x
-		lda #>(emptychar/64)
-		sta screen+0*$0100+1,x
-		sta screen+1*$0100+1,x
-		sta screen+2*$0100+1,x
-		sta screen+3*$0100+1,x
-		sta screen+4*$0100+1,x
-		sta screen+5*$0100+1,x
-		sta screen+6*$0100+1,x
-		sta screen+7*$0100+1,x
-		inx
-		inx
-		bne :-
 
 		DMA_RUN_JOB clearcolorramjob
 

@@ -74,7 +74,6 @@ $(BIN_DIR)/kbcursor_sprites1.bin: $(BIN_DIR)/kbcursor.bin
 
 $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					$(SRC_DIR)/main.s \
-					$(SRC_DIR)/irqload.s \
 					$(SRC_DIR)/macros.s \
 					$(SRC_DIR)/mathmacros.s \
 					$(SRC_DIR)/uidata.s \
@@ -82,7 +81,6 @@ $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					$(DRVRS_SRC_DIR)/mouse.s \
 					$(DRVRS_SRC_DIR)/sdc.s \
 					$(DRVRS_SRC_DIR)/keyboard.s \
-					$(DRVRS_SRC_DIR)/audiodma.s \
 					$(UI_SRC_DIR)/uimacros.s \
 					$(UI_SRC_DIR)/uicore.s \
 					$(UI_SRC_DIR)/uirect.s \
