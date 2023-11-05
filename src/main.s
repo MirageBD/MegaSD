@@ -14,6 +14,20 @@
 
 ; ----------------------------------------------------------------------------------------------------
 
+.segment "GLYPHSPAL"
+		.incbin "../bin/glyphs_pal1.bin"
+.segment "CURSORPAL"
+		.incbin "../bin/cursor_pal1.bin"
+.segment "CURSORSPRITES"
+		.incbin "../bin/cursor_sprites1.bin"
+.segment "KBCURSORSPRITES"
+		.incbin "../bin/kbcursor_sprites1.bin"
+
+.segment "FONTCHARS"
+		.incbin "../bin/font_chars1.bin"
+.segment "GLYPHSCHARS"
+		.incbin "../bin/glyphs_chars1.bin"
+
 .segment "MAIN"
 
 entry_main
@@ -131,6 +145,7 @@ entry_main
 
 		cli
 
+/*
 		jsr fl_init
 		jsr fl_waiting
 		FLOPPY_FAST_LOAD uichars,			$30, $30
@@ -140,6 +155,7 @@ entry_main
 		FLOPPY_FAST_LOAD kbsprites,			$30, $34
 		FLOPPY_FAST_LOAD spritepal,			$30, $35
 		jsr fl_exit
+*/
 
 		sei
 

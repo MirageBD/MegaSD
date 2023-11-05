@@ -30,9 +30,11 @@ BBMEGA			= b2mega
 LC				= crush 6
 GCC				= gcc
 MC				= MegaConvert
-ADDADDR			= addaddr
+MEGAADDRESS		= megatool -a
+MEGACRUNCH		= megatool -c
+MEGAIFFL		= megatool -i
 MEGAMOD			= MegaMod
-XMEGA65			= F:\xemu\xmega65.exe
+XMEGA65			= H:\xemu\xmega65.exe
 
 CONVERTBREAK	= 's/al [0-9A-F]* \.br_\([a-z]*\)/\0\nbreak \.br_\1/'
 CONVERTWATCH	= 's/al [0-9A-F]* \.wh_\([a-z]*\)/\0\nwatch store \.wh_\1/'
@@ -45,10 +47,12 @@ default: all
 
 OBJS = $(EXE_DIR)/boot.o $(EXE_DIR)/main.o
 
-# % is a wildcard
-# $< is the first dependency
-# $@ is the target
-# $^ is all dependencies
+BINFILES  = $(BIN_DIR)/font_chars1.bin
+BINFILES += $(BIN_DIR)/glyphs_chars1.bin
+BINFILES += $(BIN_DIR)/glyphs_pal1.bin
+BINFILES += $(BIN_DIR)/cursor_sprites1.bin
+BINFILES += $(BIN_DIR)/kbcursor_sprites1.bin
+BINFILES += $(BIN_DIR)/cursor_pal1.bin
 
 # -----------------------------------------------------------------------------
 
@@ -114,59 +118,32 @@ $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					Makefile Linkfile
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(EXE_DIR)/boot.prg: $(EXE_DIR)/boot.o Linkfile
-	$(LD) -Ln $(EXE_DIR)/boot.maptemp --dbgfile $(EXE_DIR)/boot.dbg -C Linkfile -o $@ $(EXE_DIR)/boot.o
-	$(ADDADDR) $(EXE_DIR)/boot.prg $(EXE_DIR)/bootaddr.prg 8193
-	$(SED) $(CONVERTVICEMAP) < $(EXE_DIR)/boot.maptemp > boot.map
-	$(SED) $(CONVERTVICEMAP) < $(EXE_DIR)/boot.maptemp > boot.list
+$(EXE_DIR)/boot.prg.addr.mc: $(BINFILES) $(EXE_DIR)/boot.o Linkfile
+	$(LD) -Ln $(EXE_DIR)/boot.maptemp --dbgfile $(EXE_DIR)/boot.dbg -C Linkfile -o $(EXE_DIR)/boot.prg $(EXE_DIR)/boot.o
+	$(MEGAADDRESS) $(EXE_DIR)/boot.prg 00002100
+	$(MEGACRUNCH) -e 00002100 $(EXE_DIR)/boot.prg.addr
 
-$(EXE_DIR)/disk.d81: $(EXE_DIR)/boot.prg $(BIN_DIR)/font_chars1.bin $(BIN_DIR)/glyphs_chars1.bin $(BIN_DIR)/cursor_sprites1.bin $(BIN_DIR)/kbcursor_sprites1.bin
+$(EXE_DIR)/megasd.d81: $(EXE_DIR)/boot.prg.addr.mc $(BINFILES)
 	$(RM) $@
-	$(CC1541) -n "mega" -i " 2022" -d 19 -v\
+	$(CC1541) -n "megasd" -i " 2023" -d 19 -v\
 	 \
-	 -f "boot" -w $(EXE_DIR)/bootaddr.prg \
-	 -f "00" -w $(BIN_DIR)/font_chars1.bin \
-	 -f "01" -w $(BIN_DIR)/glyphs_chars1.bin \
-	 -f "02" -w $(BIN_DIR)/glyphs_pal1.bin \
-	 -f "03" -w $(BIN_DIR)/cursor_sprites1.bin \
-	 -f "04" -w $(BIN_DIR)/kbcursor_sprites1.bin \
-	 -f "05" -w $(BIN_DIR)/cursor_pal1.bin \
+	 -f "megasd" -w $(EXE_DIR)/boot.prg.addr.mc \
 	$@
 
 # -----------------------------------------------------------------------------
 
-run: $(EXE_DIR)/disk.d81
+run: $(EXE_DIR)/megasd.d81
 
 ifeq ($(megabuild), 1)
-
-	m65 -l COM3 -F
-	mega65_ftp.exe -l COM3 -s 2000000 -c "cd /" \
-	-c "put D:\Mega\MegaSD\exe\disk.d81 megasd.d81"
-
-	m65 -l COM3 -F
-	m65 -l COM3 -T 'list'
-	m65 -l COM3 -T 'list'
-	m65 -l COM3 -T 'list'
-	m65 -l COM3 -T 'mount "megasd.d81"'
-	m65 -l COM3 -T 'load "$$"'
-	m65 -l COM3 -T 'list'
-	m65 -l COM3 -T 'list'
-	m65 -l COM3 -T 'load "boot"'
-	m65 -l COM3 -T 'list'
-	m65 -l COM3 -T 'run'
-
+	$(MEGAFTP) -c "put D:\Mega\MegaSD\exe\megasd.d81 megasd.d81" -c "quit"
+	$(EL) -m MEGASD.D81 -r $(EXE_DIR)/boot.prg.addr.mc
 ifeq ($(attachdebugger), 1)
 	m65dbg --device /dev/ttyS2
 endif
-
 else
-
-#	cmd.exe /c $(XMEGA65) -mastervolume 50 -autoload -8 $(EXE_DIR)/disk.d81
-	cmd.exe /c $(XMEGA65) -autoload -8 $(EXE_DIR)/disk.d81
-
+	cmd.exe /c $(XMEGA65) -autoload -8 $(EXE_DIR)/megasd.d81
 endif
 
 clean:
 	$(RM) $(EXE_DIR)/*.*
 	$(RM) $(EXE_DIR)/*
-

@@ -1,11 +1,18 @@
 MEMORY
 {
-	RAM:		start=$2001, size=$d800;
+	RAM:		start=$2100, size=$50000;
 }
 
 SEGMENTS
 {
-	BASIC:			load=RAM, start=$2001;
-	MAIN:			load=RAM, align=256;
-	TEXT:			load=RAM, align=256;
+	MAIN:				load=RAM, start=$2100;
+	TEXT:				load=RAM, align=256;
+
+	GLYPHSPAL:			load=RAM, start=$c700;
+	CURSORPAL:			load=RAM, start=$ca00;
+	CURSORSPRITES:		load=RAM, start=$ce00;
+	KBCURSORSPRITES:	load=RAM, start=$cf00;
+
+	FONTCHARS:			load=RAM, start=$10000;
+	GLYPHSCHARS:		load=RAM, start=$14000;
 }
