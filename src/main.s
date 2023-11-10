@@ -114,17 +114,55 @@ entry_main
 
 		cli
 
-/*
-		jsr fl_init
-		jsr fl_waiting
-		FLOPPY_FAST_LOAD uichars,			$30, $30
-		FLOPPY_FAST_LOAD glchars,			$30, $31
-		FLOPPY_FAST_LOAD uipal,				$30, $32
-		FLOPPY_FAST_LOAD sprites,			$30, $33
-		FLOPPY_FAST_LOAD kbsprites,			$30, $34
-		FLOPPY_FAST_LOAD spritepal,			$30, $35
-		jsr fl_exit
-*/
+thishere
+		SD_CREATE_FILE 540, "FOO.BIN"
+		SD_FIND_FILE "FOO.BIN"
+		SD_OPEN_FILE "FOO.BIN"
+
+		ldx #$00							; write increasing numbers
+:		txa
+		sta $c000+$0000,x
+		inx
+		bne :-
+
+		ldx #$00							; write decreasing numbers
+:		txa
+		eor #$ff
+		sta $c000+$0100,x
+		inx
+		bne :-
+
+		jsr sdc_writefilesector
+		bcs :+
+		inc $d020
+		jmp *-3
+
+:
+		stx $8000
+		sty $8001
+
+		ldx #$00							; write babe
+:		lda #$ba
+		sta $c000+$0000,x
+		inx
+		lda #$be
+		sta $c000+$0000,x
+		inx
+		bne :-
+
+		ldx #$00							; write code
+:		lda #$c0
+		sta $c000+$0100,x
+		inx
+		lda #$de
+		sta $c000+$0100,x
+		inx
+		bne :-
+
+		jsr sdc_writefilesector
+
+		stx $8002
+		sty $8003
 
 		sei
 

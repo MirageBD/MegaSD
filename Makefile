@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 
-megabuild		= 0
+megabuild		= 1
 finalbuild		= 1
 attachdebugger	= 1
 
@@ -34,7 +34,10 @@ MEGAADDRESS		= megatool -a
 MEGACRUNCH		= megatool -c
 MEGAIFFL		= megatool -i
 MEGAMOD			= MegaMod
+EL				= etherload
 XMEGA65			= H:\xemu\xmega65.exe
+HICKUP			= H:\xemu\HICKUP.M65
+MEGAFTP			= mega65_ftp
 
 CONVERTBREAK	= 's/al [0-9A-F]* \.br_\([a-z]*\)/\0\nbreak \.br_\1/'
 CONVERTWATCH	= 's/al [0-9A-F]* \.wh_\([a-z]*\)/\0\nwatch store \.wh_\1/'
@@ -133,13 +136,13 @@ $(EXE_DIR)/megasd.d81: $(EXE_DIR)/boot.prg.addr.mc $(BINFILES)
 run: $(EXE_DIR)/megasd.d81
 
 ifeq ($(megabuild), 1)
-	$(MEGAFTP) -c "put D:\Mega\MegaSD\exe\megasd.d81 megasd.d81" -c "quit"
-	$(EL) -m MEGASD.D81 -r $(EXE_DIR)/boot.prg.addr.mc
+	$(MEGAFTP) -e -F -c "put D:\Mega\MegaSD\exe\megasd.d81 megasd.d81" -c "quit"
+	$(EL) -r -m MEGASD.D81 -r $(EXE_DIR)/boot.prg.addr.mc
 ifeq ($(attachdebugger), 1)
 	m65dbg --device /dev/ttyS2
 endif
 else
-	cmd.exe /c $(XMEGA65) -autoload -8 $(EXE_DIR)/megasd.d81
+	cmd.exe /c $(XMEGA65) -hickup $(HICKUP) -autoload -8 $(EXE_DIR)/megasd.d81
 endif
 
 clean:

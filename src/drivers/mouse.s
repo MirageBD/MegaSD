@@ -1,13 +1,18 @@
 mouse_delta_adjust:
-		.byte $01, $01, $02, $02, $03, $04, $06, $08
-		.byte $09, $0b, $0d, $0f, $11, $13, $15, $19
-		.byte $1d, $20, $23, $26, $29, $2c, $2f, $32
-		.byte $35, $38, $3c, $41, $4b, $50, $5a, $64
+		;.byte $01, $01, $02, $02, $03, $04, $06, $08
+		;.byte $09, $0b, $0d, $0f, $11, $13, $15, $19
+		;.byte $1d, $20, $23, $26, $29, $2c, $2f, $32
+		;.byte $35, $38, $3c, $41, $4b, $50, $5a, $64
 
 		;.byte $01, $02, $03, $05, $08, $0a, $0d, $11
 		;.byte $14, $18, $1c, $21, $25, $29, $2c, $2f
 		;.byte $35, $38, $3c, $41, $4b, $50, $5a, $64
 		;.byte $64, $64, $64, $64, $64, $64, $64, $64
+
+		.byte $02, $08, $10, $25, $35, $4b, $64, $7f
+		.byte $7f, $7f, $7f, $7f, $7f, $7f, $7f, $7f
+		.byte $7f, $7f, $7f, $7f, $7f, $7f, $7f, $7f
+		.byte $7f, $7f, $7f, $7f, $7f, $7f, $7f, $7f
 
 mouse_temp1					.byte $00
 mouse_temp2					.byte $00
@@ -64,8 +69,11 @@ mouse_update
 		; $dc03 = Data Direction Port B
 		; 	Bit X: 0=Input (read only), 1=Output (read and write)
 
+		; additional bits for UP DN scroll wheel
+		; Bit       7   6   5   4   3   2   1   0
+		; function  --  --  --  LMB DN  UP  MMB RMB
 
-		lda #$e0										; set data direction to  0=input (read only) for all 8 data lines
+		lda #%11100000									; set data direction to  0=input (read only) for all 8 data lines
 		sta $dc02
 
 		lda #$40
@@ -155,9 +163,10 @@ mouse_update
 		sta mouse_doubleclicked
 
         lda $dc01										; read gameport 1. assumes paddle one is selected in bit 6/7 of $dc00
-        and #$10										; isolate button bit
+        and #%00010000									; isolate button bit
         beq mouse_event_pressed
 		
+mouse_event_released		
 		lda mouse_held									; mouse is not pressed, check if it was pressed before
 		bne :+
 		bra mouse_check_end
@@ -209,7 +218,8 @@ mouse_check_end
 
 		lda #$ff										; enable keyboard again
 		sta $dc02
-	
+		sta $dc00
+
 		rts
 
 ; -------------------------------------------		

@@ -189,6 +189,12 @@ FileNameI	lda $babe,x
 .endscope
 .endmacro
 
+.macro SD_ERROR_CODE
+		lda #$38
+		sta $d640
+		clv
+.endmacro
+
 .macro SD_LOAD_ATTICRAM addr, fname
 .scope
 			bra :+
@@ -217,32 +223,105 @@ FileNameI	lda $babe,x
 .endscope
 .endmacro
 
-.macro BASIC_UPSTART addr64, addr65
-			.byte $01, $20								; $2001 start address
+.macro SD_FIND_FILE fname
+.scope
+			bra :+
+FileName	.byte .sprintf("%s", fname), 0
+:			lda #>FileName
+			ldx #<FileName
 
-line10		.word line20								; end of command marker (first byte after the 00 terminator)
-			.word 10									; 10
-			.byte $8b, $c2								; if peek
-			.byte $28, $34, $34, $29					; (44)
-			.byte $b2									; ==
-			.byte $38									; 8
-			.byte $a7									; then
-			.byte $9e									; sys xxxx
-			.byte .sprintf("%d", addr64)
-			.byte $00
+			sta FileNameI+2
+			stx FileNameI+1
 
-line20		.word line30
-			.word 20									; 20
-			.byte $fe, $02								; bank
-			.byte $30									; 0
-			.byte 0
+			ldx #$00
+FileNameI	lda $babe,x
+			sta filebuffer,x
+			inx
+			bne FileNameI
 
-line30		.word basicend
-			.byte 30, $00								; 30
-			.byte $9e									; sys xxxx
-			.byte .sprintf("%d", addr65)				; sys xxxx
-			.byte 0
+			ldx #<filebuffer							; Make hypervisor call to set filename to find
+			ldy #>filebuffer
+			lda #$2e
+			sta $d640
+			clv
 
-basicend	.byte 0
-			.byte 0
+			lda #$34									; Find the file
+			sta $d640
+			clv
+			bcs :+
+			lda #$03
+			sta $d020
+			jmp *-3
+:
+.endscope
+.endmacro
+
+.macro SD_OPEN_FILE fname
+.scope
+			bra :+
+FileName	.byte .sprintf("%s", fname), 0
+:			lda #>FileName
+			ldx #<FileName
+
+			sta FileNameI+2
+			stx FileNameI+1
+
+			ldx #$00
+FileNameI	lda $babe,x
+			sta filebuffer,x
+			inx
+			bne FileNameI
+
+			ldx #<filebuffer							; Make hypervisor call to set filename to open
+			ldy #>filebuffer
+			lda #$2e
+			sta $d640
+			clv
+
+			lda #$18									; Open the file
+			sta $d640
+			clv
+			bcs :+
+			lda #$04
+			sta $d020
+			jmp *-3
+:
+.endscope
+.endmacro
+
+.macro SD_CREATE_FILE size, fname
+.scope
+			bra :+
+FileName	.byte .sprintf("%s", fname), 0
+:			lda #>FileName
+			ldx #<FileName
+
+			sta FileNameI+2
+			stx FileNameI+1
+
+			ldx #$00
+FileNameI	lda $babe,x
+			sta filebuffer,x
+			inx
+			bne FileNameI
+
+			ldx #<filebuffer							; Make hypervisor call to set filename to create
+			ldy #>filebuffer
+			lda #$2e
+			sta $d640
+			eom											; Wasted instruction slot required following hyper trap instruction
+
+			ldx #<size
+			ldy #>size
+			ldz #(size & $ff0000) >> 16
+
+			lda #$1e
+			sta $d640
+			clv
+
+			bcs :+
+			; XXX Check for error (carry would be clear)
+			inc $d021
+:
+.endscope
 .endmacro
