@@ -27,6 +27,8 @@ uitxt_radiobutton	.byte "radiobtn", 0
 uitxt_paddlex		.byte "$d419", 0
 uitxt_paddley		.byte "$d41a", 0
 
+uitxt_sectorwrite	.byte "SAMPLE TEXT TO WRITE TO FILE", 0
+
 la1boxtxt
 .repeat 32, I
 					.word .ident(.sprintf("la1boxtxt%s", .string(I)))

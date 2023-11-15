@@ -1,8 +1,8 @@
 # -----------------------------------------------------------------------------
 
-megabuild		= 1
+megabuild		= 0
 finalbuild		= 1
-attachdebugger	= 1
+attachdebugger	= 0
 
 # -----------------------------------------------------------------------------
 
@@ -84,6 +84,7 @@ $(EXE_DIR)/boot.o:	$(SRC_DIR)/boot.s \
 					$(DRVRS_SRC_DIR)/mouse.s \
 					$(DRVRS_SRC_DIR)/sdc.s \
 					$(DRVRS_SRC_DIR)/keyboard.s \
+					$(DRVRS_SRC_DIR)/fat32.s \
 					$(UI_SRC_DIR)/uimacros.s \
 					$(UI_SRC_DIR)/uicore.s \
 					$(UI_SRC_DIR)/uirect.s \
@@ -137,6 +138,7 @@ run: $(EXE_DIR)/megasd.d81
 
 ifeq ($(megabuild), 1)
 	$(MEGAFTP) -e -F -c "put D:\Mega\MegaSD\exe\megasd.d81 megasd.d81" -c "quit"
+#	$(MEGAFTP) -e -F -c "put D:\Mega\MegaSD\exe\HICKUP.M65 hickup.m65" -c "quit"
 	$(EL) -r -m MEGASD.D81 -r $(EXE_DIR)/boot.prg.addr.mc
 ifeq ($(attachdebugger), 1)
 	m65dbg --device /dev/ttyS2

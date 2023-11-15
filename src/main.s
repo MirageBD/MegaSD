@@ -1,15 +1,13 @@
+.define screen							$e000	; size = 80*50*2 = $1f40
 
+.define uipal							$c700	; size = $0300
+.define spritepal						$ca00
+.define sprptrs							$cd00
+.define sprites							$ce00
+.define kbsprites						$cf00
 
-.define screen					$e000	; size = 80*50*2 = $1f40
-
-.define uipal					$c700	; size = $0300
-.define spritepal				$ca00
-.define sprptrs					$cd00
-.define sprites					$ce00
-.define kbsprites				$cf00
-
-.define uichars					$10000	; $10000 - $14000     size = $4000
-.define glchars					$14000	; $14000 - $1d000     size = $9000
+.define uichars							$10000	; $10000 - $14000     size = $4000
+.define glchars							$14000	; $14000 - $1d000     size = $9000
 
 ; ----------------------------------------------------------------------------------------------------
 
@@ -114,55 +112,99 @@ entry_main
 
 		cli
 
-thishere
-		SD_CREATE_FILE 540, "FOO.BIN"
+.macro DEBUG_SECTOR address
+		lda $d681
+		sta address+0
+		lda $d682
+		sta address+1
+		lda $d683
+		sta address+2
+		lda $d684
+		sta address+3
+.endmacro
+
+.macro COPY_SECTORBUFFER_TO_MEM address
+.scope
+		ldx #$00
+:		lda $c000+$0000,x
+		sta address+$0000,x
+		lda $c000+$0100,x
+		sta address+$0100,x
+		inx
+		bne :-
+.endscope
+.endmacro
+
+		lda #$00
+		sta $c800+0
+		sta $c800+1
+		sta $c800+2
+		sta $c800+3
+		jsr userfunc_readsector				; read MBR
+		COPY_SECTORBUFFER_TO_MEM $c200
+
+		ldx #$00
+:		lda $c200 + mbr_partitionentry1_offset + pe_numberofsectorsbetweenmbrandfirstsectorinpartition_offset,x	; first partition entry
+		sta $c400,x
+		inx
+		cpx #$05
+		bne :-
+
+		SD_CREATE_FILE 540, "FOO.BIN"		; should normally fail, because file already exists
 		SD_FIND_FILE "FOO.BIN"
 		SD_OPEN_FILE "FOO.BIN"
 
-		ldx #$00							; write increasing numbers
-:		txa
+		DEBUG_SECTOR $6000					; $002a29
+
+		ldx #$00							; write all 2
+:		lda #$02
 		sta $c000+$0000,x
+		sta $c000+$0100,x
 		inx
 		bne :-
 
-		ldx #$00							; write decreasing numbers
-:		txa
-		eor #$ff
-		sta $c000+$0100,x
+		ldx #$00
+:		lda uitxt_sectorwrite,x				; write debug string
+		sta $c000,x
 		inx
+		cpx #29
 		bne :-
 
 		jsr sdc_writefilesector
-		bcs :+
-		inc $d020
-		jmp *-3
 
-:
-		stx $8000
-		sty $8001
+		DEBUG_SECTOR $6004					; $018618
 
-		ldx #$00							; write babe
-:		lda #$ba
+		ldx #$00							; write all 3
+:		lda #$03
 		sta $c000+$0000,x
-		inx
-		lda #$be
-		sta $c000+$0000,x
-		inx
-		bne :-
-
-		ldx #$00							; write code
-:		lda #$c0
-		sta $c000+$0100,x
-		inx
-		lda #$de
 		sta $c000+$0100,x
 		inx
 		bne :-
 
 		jsr sdc_writefilesector
 
-		stx $8002
-		sty $8003
+		lda #$22							; close all filedescriptors
+		sta $d640
+		clv
+
+		DEBUG_SECTOR $6008					; $018619
+
+		ldx #$00							; write 0 to verify readback
+:		lda #$00
+		sta $c000+$0000,x
+		inx
+		bne :-
+
+		SD_FIND_FILE "FOO.BIN"
+		SD_OPEN_FILE "FOO.BIN"
+
+		DEBUG_SECTOR $600c					; $002a29
+
+		;jsr sdc_readfilesector				; data should now be in $c000
+
+		DEBUG_SECTOR $6010					; $018618
+
+		;jmp *-3
 
 		sei
 
@@ -177,11 +219,29 @@ thishere
 		jsr mouse_init									; initialise drivers
 		jsr ui_init										; initialise UI
 		jsr ui_setup
-		lda #$00
+
+		lda #$00										; start at sector 0
 		sta $c800+0
 		sta $c800+1
 		sta $c800+2
 		sta $c800+3
+
+														; or start at sector for file written
+		lda $d681
+		sta $c800+0
+		sta nbsectorlo_data+2
+		lda $d682
+		sta $c800+1
+		sta nbsectorlo_data+3
+		lda $d683
+		sta $c800+2
+		sta nbsectorhi_data+2
+		lda $d684
+		sta $c800+3
+		sta nbsectorhi_data+3
+		UICORE_CALLELEMENTFUNCTION nbsectorlo, uicnumericbutton_draw
+		UICORE_CALLELEMENTFUNCTION nbsectorhi, uicnumericbutton_draw
+
 		jsr userfunc_readsector
 		UICORE_CALLELEMENTFUNCTION fv1filebox, uifatview_draw
 

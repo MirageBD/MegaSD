@@ -12,6 +12,7 @@ filebuffer = $0200
 
 .include "ui/uimacros.s"
 
+.include "drivers/fat32.s"
 .include "main.s"
 .include "irqload.s"
 

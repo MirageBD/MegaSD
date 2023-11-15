@@ -17,8 +17,8 @@ sdcounter	.byte 0, 0, 0, 0
 
 sdc_readfilesector
 
-		lda #$35
-		sta $01
+		;lda #$35
+		;sta $01
 
 		inc sdc_sectorcount+0
 		bne :+
@@ -63,8 +63,8 @@ sdc_sectoroperation_done
 		pla												; map the colour RAM at $dc00 if it was previously mapped
 		sta $d030
 
-		lda #$34
-		sta $01
+		;lda #$34
+		;sta $01
 
 		rts
 
@@ -74,6 +74,11 @@ sdc_readsector_error
 
 		cmp #$ff										; if the error code in A is $ff we have reached the end of the file otherwise there’s been an error
 		bne sdc_readsector_fatalerror
+
+		lda #$37
+		sta $01
+		lda #$02
+		sta $d020
 
 		pla												; map the colour RAM at $dc00 if it was previously mapped
 		sta $d030
@@ -92,8 +97,8 @@ sdc_readsector_fatalerror
 
 sdc_writefilesector
 
-		lda #$35
-		sta $01
+;		lda #$35
+;		sta $01
 
 		inc sdc_sectorcount+0
 		bne :+
@@ -116,9 +121,6 @@ sdc_writefilesector
 		inx
 		bne :-
 
-		lda #$82										; unmap the sector buffer from $de00
-		sta $d680
-
 		lda #$1c										; write the next sector (hyppo_writefile)
 		sta $d640
 		clv
@@ -127,11 +129,14 @@ sdc_writefilesector
 		jmp sdc_readsector_error
 :
 
+		lda #$82										; unmap the sector buffer from $de00
+		sta $d680
+
 		pla												; map the colour RAM at $dc00 if it was previously mapped
 		sta $d030
 
-		lda #$34
-		sta $01
+;		lda #$34
+;		sta $01
 
 		rts
 
