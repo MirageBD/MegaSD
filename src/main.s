@@ -135,6 +135,7 @@ entry_main
 .endscope
 .endmacro
 
+/*
 		lda #$00
 		sta $c800+0
 		sta $c800+1
@@ -149,6 +150,7 @@ entry_main
 		inx
 		cpx #$05
 		bne :-
+*/
 
 		SD_CREATE_FILE 540, "FOO.BIN"		; should normally fail, because file already exists
 		SD_FIND_FILE "FOO.BIN"
@@ -220,13 +222,40 @@ entry_main
 		jsr ui_init										; initialise UI
 		jsr ui_setup
 
+/*
 		lda #$00										; start at sector 0
 		sta $c800+0
+		sta nbsectorlo_data+2
 		sta $c800+1
+		sta nbsectorlo_data+3
 		sta $c800+2
+		sta nbsectorhi_data+2
 		sta $c800+3
+		sta nbsectorhi_data+3
+*/
+
+		lda #$38										; or at start of FAT (partition start $0800 + reserved sectors in partition $0238 = $0a38)
+		sta $c800+0
+		sta nbsectorlo_data+2
+		lda #$0a
+		sta $c800+1
+		sta nbsectorlo_data+3
+		lda #$00
+		sta $c800+2
+		sta nbsectorhi_data+2
+		sta $c800+3
+		sta nbsectorhi_data+3
+
+		; 0x?0000000									; free cluster
+		; 0x?0000001									; reserved for internal purposes
+		; 0x?0000002 - 0x?FFFFFEF						; used as data clusters
+		; 0x?FFFFFF0 - 0x?FFFFFF5						; reserved ub some contexts
+		; 0x?FFFFFF6									; reserved, do not use
+		; 0x?FFFFFF7									; bad sector in cluster or reseved cluster
+		; 0x?FFFFFF8 - 0x?FFFFFFF						; last cluster in file (EOC)
 
 														; or start at sector for file written
+/*
 		lda $d681
 		sta $c800+0
 		sta nbsectorlo_data+2
@@ -239,6 +268,8 @@ entry_main
 		lda $d684
 		sta $c800+3
 		sta nbsectorhi_data+3
+*/
+
 		UICORE_CALLELEMENTFUNCTION nbsectorlo, uicnumericbutton_draw
 		UICORE_CALLELEMENTFUNCTION nbsectorhi, uicnumericbutton_draw
 

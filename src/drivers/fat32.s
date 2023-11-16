@@ -1,3 +1,10 @@
+; LBA = Logical block addressing
+
+; fat_begin_lba				= Partition_LBA_Begin + Number_of_Reserved_Sectors;
+; cluster_begin_lba			= Partition_LBA_Begin + Number_of_Reserved_Sectors + (Number_of_FATs * Sectors_Per_FAT);
+; sectors_per_cluster		= BPB_SecPerClus;
+; root_dir_first_cluster	= BPB_RootClus;
+
 ; MASTER BOOT RECORD
 
 .define mbr_partitionentry1_offset										$01be
@@ -17,14 +24,14 @@
 .define pe_numberofsectorsbetweenmbrandfirstsectorinpartition_offset	$08
 .define pe_numberofsectorsinpartition_offset							$0c
 
-; BOOT RECORD INFORMATION
+; BOOT RECORD INFORMATION (1st sector in partition = $0800)
 
 .define bri_jumpcode_offset												$0000
 .define bri_oemname_offset												$0003
 .define bri_bytespersector_offset										$000b
-.define bri_sectorspercluster_offset									$000d
-.define bri_reservedsectors_offset										$000e
-.define bri_numberoffatcopies_offset									$0010
+.define bri_sectorspercluster_offset									$000d   ; !!!!
+.define bri_reservedsectors_offset										$000e   ; !!!! (fs_fat32_system_sectors in hyppo)
+.define bri_numberoffatcopies_offset									$0010   ; !!!! (should be 2)
 .define bri_maxrootdirentries_offset									$0011	; n/a for fat32
 .define bri_numsectorsinpartitionsmallerthan32mb_offset					$0013	; n/a for fat32
 .define bri_mediadescriptor_offset										$0015	; $f8 for hard disks
@@ -36,7 +43,7 @@
 .define bri_numberofsectorsperfat_offset								$0024
 .define bri_flags_offset												$0028	; bits 0-4 = indicateactive fat copy, bit 7 = fat mirroring enabled
 .define bri_versionoffat32drive_offset									$002a	; highbyte = major, lowbyte = minor
-.define bri_clusternumberofstartofrootdirectory_offset					$002c
+.define bri_clusternumberofstartofrootdirectory_offset					$002c   ; !!!!
 .define bri_sectornumberoffilesysteminformationsector_offset			$0030	; see structure below. referenced from the start of partition
 .define bri_sectornumberofbackupbootsector_offset						$0032	; referenced from the start of partition
 .define bri_reserved_offset												$0034
