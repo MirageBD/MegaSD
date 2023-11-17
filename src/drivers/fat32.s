@@ -55,3 +55,11 @@
 .define bri_fatname_offset												$0052	; FAT32
 .define bri_executablecode_offset										$005a
 .define bri_signature_offset											$01fe	; $55AA
+
+		; 0x?0000000									; free cluster
+		; 0x?0000001									; reserved for internal purposes
+		; 0x?0000002 - 0x?FFFFFEF						; used as data clusters
+		; 0x?FFFFFF0 - 0x?FFFFFF5						; reserved in some contexts
+		; 0x?FFFFFF6									; reserved, do not use
+		; 0x?FFFFFF7									; bad sector in cluster or reserved cluster
+		; 0x?FFFFFF8 - 0x?FFFFFFF						; last cluster in file (EOC)

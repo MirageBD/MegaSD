@@ -43,27 +43,16 @@ uifatview_draw
 		lda #>$c000
 		sta zpptr2+1
 
-		lda $c800+0
+		lda #$00
 		sta uifatview_tmp+0
-		lda $c800+1
 		sta uifatview_tmp+1
-		lda $c800+2
-		sta uifatview_tmp+2
-		lda $c800+3
-		sta uifatview_tmp+3
 
 ufv_lineloop
 
 		ldz #$00
 
-		lda uifatview_tmp+3
-		jsr uifatview_drawbytelo
-		lda uifatview_tmp+3
-		jsr uifatview_drawbytehi
-		lda uifatview_tmp+2
-		jsr uifatview_drawbytelo
-		lda uifatview_tmp+2
-		jsr uifatview_drawbytehi
+		jsr uifatview_drawspace
+
 		lda uifatview_tmp+1
 		jsr uifatview_drawbytelo
 		lda uifatview_tmp+1
@@ -73,6 +62,7 @@ ufv_lineloop
 		lda uifatview_tmp+0
 		jsr uifatview_drawbytehi
 
+		jsr uifatview_drawspace
 		jsr uifatview_drawspace
 		jsr uifatview_drawspace
 
@@ -91,6 +81,7 @@ ufv_ll2	jsr uifatview_drawcolouredbyte
 		cpy #16
 		bne ufv_ll2
 
+		jsr uifatview_drawspace
 		jsr uifatview_drawspace
 
 		ldy #$00
@@ -116,12 +107,6 @@ ufv_ll3	jsr uifatview_drawchar
 		lda uifatview_tmp+1
 		adc #0
 		sta uifatview_tmp+1
-		lda uifatview_tmp+2
-		adc #0
-		sta uifatview_tmp+2
-		lda uifatview_tmp+3
-		adc #0
-		sta uifatview_tmp+3
 
 		lda zpptr2+1
 		cmp #>($c000 + $0200)

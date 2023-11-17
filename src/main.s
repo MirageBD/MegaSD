@@ -152,6 +152,11 @@ entry_main
 		bne :-
 */
 
+
+
+
+
+
 		SD_CREATE_FILE 540, "FOO.BIN"		; should normally fail, because file already exists
 		SD_FIND_FILE "FOO.BIN"
 		SD_OPEN_FILE "FOO.BIN"
@@ -208,6 +213,14 @@ entry_main
 
 		;jmp *-3
 
+
+
+
+
+
+
+
+
 		sei
 
 		lda #$35
@@ -245,14 +258,6 @@ entry_main
 		sta nbsectorhi_data+2
 		sta $c800+3
 		sta nbsectorhi_data+3
-
-		; 0x?0000000									; free cluster
-		; 0x?0000001									; reserved for internal purposes
-		; 0x?0000002 - 0x?FFFFFEF						; used as data clusters
-		; 0x?FFFFFF0 - 0x?FFFFFF5						; reserved ub some contexts
-		; 0x?FFFFFF6									; reserved, do not use
-		; 0x?FFFFFF7									; bad sector in cluster or reseved cluster
-		; 0x?FFFFFF8 - 0x?FFFFFFF						; last cluster in file (EOC)
 
 														; or start at sector for file written
 /*
