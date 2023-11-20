@@ -155,13 +155,10 @@ entry_main
 
 
 
-
-
 		SD_CREATE_FILE 540, "FOO.BIN"		; should normally fail, because file already exists
+
 		SD_FIND_FILE "FOO.BIN"
 		SD_OPEN_FILE "FOO.BIN"
-
-		DEBUG_SECTOR $6000					; $002a29
 
 		ldx #$00							; write all 2
 :		lda #$02
@@ -179,8 +176,6 @@ entry_main
 
 		jsr sdc_writefilesector
 
-		DEBUG_SECTOR $6004					; $018618
-
 		ldx #$00							; write all 3
 :		lda #$03
 		sta $c000+$0000,x
@@ -194,8 +189,6 @@ entry_main
 		sta $d640
 		clv
 
-		DEBUG_SECTOR $6008					; $018619
-
 		ldx #$00							; write 0 to verify readback
 :		lda #$00
 		sta $c000+$0000,x
@@ -203,15 +196,12 @@ entry_main
 		bne :-
 
 		SD_FIND_FILE "FOO.BIN"
-		SD_OPEN_FILE "FOO.BIN"
+		;SD_OPEN_FILE "FOO.BIN"
 
-		DEBUG_SECTOR $600c					; $002a29
+		SD_RMFILE
+		jsr sdc_debug_current_sector
 
-		;jsr sdc_readfilesector				; data should now be in $c000
-
-		DEBUG_SECTOR $6010					; $018618
-
-		;jmp *-3
+		;jmp *
 
 
 
@@ -247,7 +237,8 @@ entry_main
 		sta nbsectorhi_data+3
 */
 
-		lda #$38										; or at start of FAT (partition start $0800 + reserved sectors in partition $0238 = $0a38)
+
+		lda #$8f										; or at start of FAT (partition start $0800 + reserved sectors in partition $0238 = $0a38)
 		sta $c800+0
 		sta nbsectorlo_data+2
 		lda #$0a
@@ -259,7 +250,7 @@ entry_main
 		sta $c800+3
 		sta nbsectorhi_data+3
 
-														; or start at sector for file written
+														; or start at fileentry
 /*
 		lda $d681
 		sta $c800+0
@@ -278,7 +269,7 @@ entry_main
 		UICORE_CALLELEMENTFUNCTION nbsectorlo, uicnumericbutton_draw
 		UICORE_CALLELEMENTFUNCTION nbsectorhi, uicnumericbutton_draw
 
-		jsr userfunc_readsector
+		;jsr userfunc_readsector
 		UICORE_CALLELEMENTFUNCTION fv1filebox, uifatview_draw
 
 		lda #$7f										; disable CIA interrupts

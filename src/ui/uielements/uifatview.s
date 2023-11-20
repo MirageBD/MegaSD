@@ -73,7 +73,7 @@ ufv_ll1	jsr uifatview_drawcolouredbyte
 		cpy #8
 		bne ufv_ll1
 
-		jsr uifatview_drawspace
+		;jsr uifatview_drawspace
 
 ufv_ll2	jsr uifatview_drawcolouredbyte
 		jsr uifatview_drawspace

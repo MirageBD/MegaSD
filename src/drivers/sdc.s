@@ -15,6 +15,34 @@ sdcounter	.byte 0, 0, 0, 0
 
 ; ----------------------------------------------------------------------------------------------------
 
+sdc_debug_current_sector
+
+		lda $d030										; unmap the colour RAM from $dc00 because that will prevent us from mapping in the sector buffer
+		pha
+		and #%11111110
+		sta $d030
+
+		lda #$81										; map the sector buffer to $de00
+		sta $d680
+
+		ldx #$00										; copy sector to sectorbuffer
+:		lda $de00,x
+		sta sdc_sectorbuffer+$0000,x
+		lda $df00,x
+		sta sdc_sectorbuffer+$0100,x
+		inx
+		bne :-
+
+		lda #$82										; unmap the sector buffer from $de00
+		sta $d680
+
+		pla												; map the colour RAM at $dc00 if it was previously mapped
+		sta $d030
+
+		rts
+
+; ----------------------------------------------------------------------------------------------------
+
 sdc_readfilesector
 
 		;lda #$35
@@ -191,9 +219,6 @@ rsread
 		inx
 		bne :-
 
-		;inc $d020										; this gets hit
-		;jmp *-3
-
 		sec
 		rts
 
@@ -207,7 +232,7 @@ rsbusyfail												; fail
 
 		lda #$e0
 		sta $d020
-		jmp *-3
+		jmp *
 
 		clc
 		rts
@@ -285,12 +310,6 @@ sr1		clc
 		rts
 
 sdisready:
-
-
-		;lda #$e0
-		;sta $d020
-		;jmp *-3
-
 
 		sec
 		rts

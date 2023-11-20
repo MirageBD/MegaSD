@@ -251,7 +251,7 @@ FileNameI	lda $babe,x
 			bcs :+
 			lda #$03
 			sta $d020
-			jmp *-3
+			jmp *
 :
 .endscope
 .endmacro
@@ -284,7 +284,7 @@ FileNameI	lda $babe,x
 			bcs :+
 			lda #$04
 			sta $d020
-			jmp *-3
+			jmp *
 :
 .endscope
 .endmacro
@@ -323,5 +323,26 @@ FileNameI	lda $babe,x
 			; XXX Check for error (carry would be clear)
 			inc $d021
 :
+.endscope
+.endmacro
+
+.macro SD_READDIR
+.scope
+	phx
+	ldy #>$0900
+
+	lda #$14
+	sta $d640
+	clv
+
+	plx
+.endscope
+.endmacro
+
+.macro SD_RMFILE
+.scope
+	lda #$26
+	sta $d640
+	clv
 .endscope
 .endmacro
