@@ -3,7 +3,12 @@
 uitxt_sectorlo		.byte "sector lo", 0
 uitxt_sectorhi		.byte "sector hi", 0
 
+uitxt_sectorfat		.byte "fat", 0
+uitxt_sectordirent	.byte "dirent", 0
+
 uitxt_save			.byte "save", 0
+
+uitxt_show			.byte "show", 0
 
 uitxt_finetune		.byte "finetune", 0
 uitxt_volume		.byte "volume", 0

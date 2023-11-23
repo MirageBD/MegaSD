@@ -329,6 +329,22 @@ sd_map_sectorbuffer
 
 ; ----------------------------------------------------------------------------------------------------
 
+sdc_findfile
+
+		ldy #>sdc_transferbuffer						; set the hyppo filename from transferbuffer
+		lda #$2e
+		sta $d640
+		clv
+		bcc :+
+		lda #$34										; Find the file
+		sta $d640
+		clv
+		bcs :+
+		lda #$03
+		sta $d020
+		jmp *
+:		rts			
+
 sdc_opendir
 
 		lda #$00

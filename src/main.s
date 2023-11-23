@@ -156,6 +156,7 @@ entry_main
 
 
 		SD_CREATE_FILE 540, "FOO.BIN"		; should normally fail, because file already exists
+		SD_CREATE_FILE 512, "FOO2.BIN"		; should normally fail, because file already exists
 
 		SD_FIND_FILE "FOO.BIN"
 		SD_OPEN_FILE "FOO.BIN"
@@ -196,12 +197,14 @@ entry_main
 		bne :-
 
 		SD_FIND_FILE "FOO.BIN"
-		;SD_OPEN_FILE "FOO.BIN"
-
 		SD_RMFILE
+
+		;SD_FIND_FILE "FOO2.BIN"
+		;SD_RMFILE
+
 		jsr sdc_debug_current_sector
 
-		;jmp *
+		; jmp *
 
 
 
@@ -225,51 +228,51 @@ entry_main
 		jsr ui_init										; initialise UI
 		jsr ui_setup
 
-/*
+
 		lda #$00										; start at sector 0
 		sta $c800+0
-		sta nbsectorlo_data+2
+		sta nbsectorlouser_data+2
 		sta $c800+1
-		sta nbsectorlo_data+3
+		sta nbsectorlouser_data+3
 		sta $c800+2
-		sta nbsectorhi_data+2
+		sta nbsectorhiuser_data+2
 		sta $c800+3
-		sta nbsectorhi_data+3
-*/
+		sta nbsectorhiuser_data+3
 
 
+/*
 		lda #$8f										; or at start of FAT (partition start $0800 + reserved sectors in partition $0238 = $0a38)
 		sta $c800+0
-		sta nbsectorlo_data+2
+		sta nbsectorlouser_data+2
 		lda #$0a
 		sta $c800+1
-		sta nbsectorlo_data+3
+		sta nbsectorlouser_data+3
 		lda #$00
 		sta $c800+2
-		sta nbsectorhi_data+2
+		sta nbsectorhiuser_data+2
 		sta $c800+3
-		sta nbsectorhi_data+3
-
+		sta nbsectorhiuser_data+3
+*/
 														; or start at fileentry
 /*
 		lda $d681
 		sta $c800+0
-		sta nbsectorlo_data+2
+		sta nbsectorlouser_data+2
 		lda $d682
 		sta $c800+1
-		sta nbsectorlo_data+3
+		sta nbsectorlouser_data+3
 		lda $d683
 		sta $c800+2
-		sta nbsectorhi_data+2
+		sta nbsectorhiuser_data+2
 		lda $d684
 		sta $c800+3
-		sta nbsectorhi_data+3
+		sta nbsectorhiuser_data+3
 */
 
-		UICORE_CALLELEMENTFUNCTION nbsectorlo, uicnumericbutton_draw
-		UICORE_CALLELEMENTFUNCTION nbsectorhi, uicnumericbutton_draw
+		UICORE_CALLELEMENTFUNCTION nbsectorlouser, uicnumericbutton_draw
+		UICORE_CALLELEMENTFUNCTION nbsectorhiuser, uicnumericbutton_draw
 
-		;jsr userfunc_readsector
+		jsr userfunc_readsector
 		UICORE_CALLELEMENTFUNCTION fv1filebox, uifatview_draw
 
 		lda #$7f										; disable CIA interrupts
