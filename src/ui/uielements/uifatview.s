@@ -51,7 +51,7 @@ ufv_lineloop
 
 		ldz #$00
 
-		jsr uifatview_drawspace
+		;jsr uifatview_drawspace
 
 		lda uifatview_tmp+1
 		jsr uifatview_drawbytelo
@@ -63,8 +63,8 @@ ufv_lineloop
 		jsr uifatview_drawbytehi
 
 		jsr uifatview_drawspace
-		jsr uifatview_drawspace
-		jsr uifatview_drawspace
+		;jsr uifatview_drawspace
+		;jsr uifatview_drawspace
 
 		ldy #$00
 ufv_ll1	jsr uifatview_drawcolouredbyte
@@ -81,8 +81,8 @@ ufv_ll2	jsr uifatview_drawcolouredbyte
 		cpy #16
 		bne ufv_ll2
 
-		jsr uifatview_drawspace
-		jsr uifatview_drawspace
+		;jsr uifatview_drawspace
+		;jsr uifatview_drawspace
 
 		ldy #$00
 ufv_ll3	jsr uifatview_drawchar

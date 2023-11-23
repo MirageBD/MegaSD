@@ -16,6 +16,7 @@ windows
 window0area
 		UIELEMENT_ADD fa1nineslice,				nineslice,			filearea1elements,		 1,  0, 38, 16,  0,		$ffff,						uidefaultflags
 
+/*
 		UIELEMENT_ADD labelsectorfat,			label,				$ffff,					40, 2,  9,  1,  0,		labelsectorfat_data,		uidefaultflags
 		UIELEMENT_ADD nbsectorlofat,			cnumericbutton,		$ffff,					50, 1,  9,  3,  0,		nbsectorlofat_data,			uidefaultflags
 		UIELEMENT_ADD nbsectorhifat,			cnumericbutton,		$ffff,					59, 1,  9,  3,  0,		nbsectorhifat_data,			uidefaultflags
@@ -25,9 +26,10 @@ window0area
 		UIELEMENT_ADD nbsectorlodirent,			cnumericbutton,		$ffff,					50, 3,  9,  3,  0,		nbsectorlodirent_data,		uidefaultflags
 		UIELEMENT_ADD nbsectorhidirent,			cnumericbutton,		$ffff,					59, 3,  9,  3,  0,		nbsectorhidirent_data,		uidefaultflags
 		UIELEMENT_ADD showbutton2,				ctextbutton,		$ffff,					72, 3,  8,  3,  0,		showbutton_data,			uidefaultflags
+*/
 
-		UIELEMENT_ADD labelsectorlo,			label,				$ffff,					61, 11,  9,  1,  0,		labelsectorlo_data,			uidefaultflags
-		UIELEMENT_ADD nbsectorlouser,			cnumericbutton,		$ffff,					70, 10,  9,  3,  0,		nbsectorlouser_data,		uidefaultflags
+		UIELEMENT_ADD labelsectorlo,			label,				$ffff,					61, 12,  9,  1,  0,		labelsectorlo_data,			uidefaultflags
+		UIELEMENT_ADD nbsectorlouser,			cnumericbutton,		$ffff,					70, 11,  9,  3,  0,		nbsectorlouser_data,		uidefaultflags
 		UIELEMENT_ADD labelsectorhi,			label,				$ffff,					61, 14,  9,  1,  0,		labelsectorhi_data,			uidefaultflags
 		UIELEMENT_ADD nbsectorhiuser,			cnumericbutton,		$ffff,					70, 13,  9,  3,  0,		nbsectorhiuser_data,		uidefaultflags
 
