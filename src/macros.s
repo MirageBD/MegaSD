@@ -346,3 +346,12 @@ FileNameI	lda $babe,x
 	clv
 .endscope
 .endmacro
+
+.macro SD_FSTAT
+.scope
+	lda #$28
+	sta $d640
+	clv
+.endscope
+.endmacro
+

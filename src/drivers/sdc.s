@@ -329,6 +329,21 @@ sd_map_sectorbuffer
 
 ; ----------------------------------------------------------------------------------------------------
 
+sdc_fstat
+
+		tax												; transfer the directory file descriptor into X
+		ldy #>sdc_transferbuffer						; set Y to the MSB of the transfer area
+
+		lda #$28										; hyppo_fstat - read the directory entry
+		sta $d640
+		clv
+		bcs sdcfs2
+		lda #$03
+		sta $d020
+		jmp *
+
+sdcfs2	rts
+
 sdc_findfile
 
 		ldy #>sdc_transferbuffer						; set the hyppo filename from transferbuffer

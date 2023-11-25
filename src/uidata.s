@@ -127,19 +127,61 @@ userfunc_openfile
 		bra :-
 
 :		sta sdc_transferbuffer,x
-
 		jsr sdc_findfile
+		jsr sdc_fstat
 
-		lda sd_address_byte0							; is $d681
+		sec															; subtract 2 (clusters 0 and 1 don't actually exist on FAT32).
+		lda sdc_transferbuffer+$001a
+		sbc #$02
+		sta sdc_transferbuffer+$001a
+		lda sdc_transferbuffer+$001b
+		sbc #$00
+		sta sdc_transferbuffer+$001b
+		lda sdc_transferbuffer+$0014
+		sbc #$00
+		sta sdc_transferbuffer+$0014
+		lda sdc_transferbuffer+$0015
+		sbc #$00
+		sta sdc_transferbuffer+$0015
+
+		ldx #$00													; multiply by 8 (sectors per cluster)
+:		clc
+		rol sdc_transferbuffer+$001a
+		rol sdc_transferbuffer+$001b
+		rol sdc_transferbuffer+$0014
+		rol sdc_transferbuffer+$0015
+		inx
+		cpx #$03
+		bne :-
+
+		clc															; add cluster_begin_lba (fs_fat32_cluster0_sector + fs_start_sector = $0800+$0238 = $0a38)
+		lda sdc_transferbuffer+$001a								; $0a38 + 2*0ff8 = $2a28
+		adc #$28
+		sta sdc_transferbuffer+$001a
+		lda sdc_transferbuffer+$001b
+		adc #$2a
+		sta sdc_transferbuffer+$001b
+		lda sdc_transferbuffer+$0014
+		adc #$00
+		sta sdc_transferbuffer+$0014
+		lda sdc_transferbuffer+$0015
+		adc #$00
+		sta sdc_transferbuffer+$0015
+
+		;lda sd_address_byte0							; is $d681
+		lda sdc_transferbuffer+$001a
 		sta $c800+0
 		sta nbsectorlouser_data+2
-		lda sd_address_byte1							; is $d682
+		;lda sd_address_byte1							; is $d682
+		lda sdc_transferbuffer+$001b
 		sta $c800+1
 		sta nbsectorlouser_data+3
-		lda sd_address_byte2							; is $d683
+		;lda sd_address_byte2							; is $d683
+		lda sdc_transferbuffer+$0014
 		sta $c800+2
 		sta nbsectorhiuser_data+2
-		lda sd_address_byte3							; is $d684
+		;lda sd_address_byte3							; is $d684
+		lda sdc_transferbuffer+$0015
 		sta $c800+3
 		sta nbsectorhiuser_data+3
 
