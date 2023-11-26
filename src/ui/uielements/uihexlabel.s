@@ -54,8 +54,10 @@ uihexlabel_draw
 		lsr
 		lsr
 		tax
-		lda hextodec,x
+		lda hextodec_inverted,x
 		sta [uidraw_scrptr],z
+		lda #$3a
+		sta [uidraw_colptr],z		
 		inz
 		lda #$04
 		sta [uidraw_scrptr],z
@@ -64,8 +66,10 @@ uihexlabel_draw
 		lda (zpptr2),y
 		and #$0f
 		tax
-		lda hextodec,x
+		lda hextodec_inverted,x
 		sta [uidraw_scrptr],z
+		lda #$3a
+		sta [uidraw_colptr],z		
 		inz
 		lda #$04
 		sta [uidraw_scrptr],z

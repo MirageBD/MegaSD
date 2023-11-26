@@ -1,6 +1,60 @@
 ; ----------------------------------------------------------------------------------------------------
 
 uifatview_tmp	.dword 0
+uifatview_tmp2	.dword 0
+
+uifatview_markstart
+		.word $0200
+uifatview_markend
+		.word $0200
+
+uifatview_charcolour_dark
+		.byte $08
+uifatview_charcolour_light
+		.byte $0f
+
+uifatview_checkmarked
+
+		clc
+		tya
+		adc uifatview_tmp+0
+		sta uifatview_tmp2+0
+		lda uifatview_tmp+1
+		adc #$00
+		sta uifatview_tmp2+1
+
+		lda uifatview_tmp2+1
+		cmp uifatview_markstart+1
+		bne :+
+		lda uifatview_tmp2+0
+		cmp uifatview_markstart+0
+:		bcc ufvnotmarked	; lower
+		bne ufvmhigher		; higher
+		bra ufvmarked		; same
+
+ufvmhigher
+		lda uifatview_tmp2+1
+		cmp uifatview_markend+1
+		bne :+
+		lda uifatview_tmp2+0
+		cmp uifatview_markend+0
+:		bcc ufvmarked		; lower
+		bne ufvnotmarked	; higher
+		bra ufvnotmarked	; same
+
+ufvmarked
+		lda #$b4
+		sta uifatview_charcolour_dark
+		lda #$3a
+		sta uifatview_charcolour_light
+		rts
+
+ufvnotmarked
+		lda #$08
+		sta uifatview_charcolour_dark
+		lda #$0f
+		sta uifatview_charcolour_light
+		rts
 
 ; ----------------------------------------------------------------------------------------------------
 
@@ -38,9 +92,14 @@ uifatview_draw
 
 		jsr uidraw_set_draw_position
 
-		lda #<$c000
+		lda #$08
+		sta uifatview_charcolour_dark
+		lda #$0f
+		sta uifatview_charcolour_light
+
+		lda #<$c000		; sdc_sectorbuffer
 		sta zpptr2+0
-		lda #>$c000
+		lda #>$c000		; sdc_sectorbuffer
 		sta zpptr2+1
 
 		lda #$00
@@ -51,10 +110,10 @@ ufv_lineloop
 
 		ldz #$00
 
-		;jsr uifatview_drawspace
+		jsr uifatview_drawspace
 
 		lda uifatview_tmp+1
-		jsr uifatview_drawbytelo
+		jsr uifatview_drawbytelo									; draw address 0000-0200
 		lda uifatview_tmp+1
 		jsr uifatview_drawbytehi
 		lda uifatview_tmp+0
@@ -63,28 +122,28 @@ ufv_lineloop
 		jsr uifatview_drawbytehi
 
 		jsr uifatview_drawspace
-		;jsr uifatview_drawspace
-		;jsr uifatview_drawspace
+		jsr uifatview_drawspace
+		jsr uifatview_drawspace
 
-		ldy #$00
+		ldy #$00													; draw 8 bytes
 ufv_ll1	jsr uifatview_drawcolouredbyte
 		jsr uifatview_drawspace
 		iny
 		cpy #8
 		bne ufv_ll1
 
-		;jsr uifatview_drawspace
+		jsr uifatview_drawspace
 
-ufv_ll2	jsr uifatview_drawcolouredbyte
+ufv_ll2	jsr uifatview_drawcolouredbyte								; draw 8 bytes
 		jsr uifatview_drawspace
 		iny
 		cpy #16
 		bne ufv_ll2
 
-		;jsr uifatview_drawspace
-		;jsr uifatview_drawspace
+		jsr uifatview_drawspace
+		jsr uifatview_drawspace
 
-		ldy #$00
+		ldy #$00													; draw 16 ascii
 ufv_ll3	jsr uifatview_drawchar
 		iny
 		cpy #16
@@ -109,7 +168,7 @@ ufv_ll3	jsr uifatview_drawchar
 		sta uifatview_tmp+1
 
 		lda zpptr2+1
-		cmp #>($c000 + $0200)
+		cmp #>($c000 + $0200)		; sdc_sectorbuffer + $0200
 		beq :+
 		jmp ufv_lineloop
 
@@ -129,13 +188,16 @@ uifatview_drawspace
 ; ----------------------------------------------------------------------------------------------------
 
 uifatview_drawchar
+
+		jsr uifatview_checkmarked
+
 		lda (zpptr2),y
 		bne :+
-		lda #$04
+		lda uifatview_charcolour_dark
 		sta [uidraw_colptr],z
 		lda #$2e
 		bra :++
-:		lda #$0f
+:		lda uifatview_charcolour_light
 		sta [uidraw_colptr],z
 		lda (zpptr2),y
 :		;and #$3f
@@ -156,10 +218,12 @@ uifatview_drawchar
 
 uifatview_drawcolouredbyte
 
+		jsr uifatview_checkmarked
+
 		lda (zpptr2),y
 		bne :+
 
-		lda #$08
+		lda uifatview_charcolour_dark								; set colour to dark (gray)
 		sta [uidraw_colptr],z
 		inz
 		inz
@@ -167,7 +231,7 @@ uifatview_drawcolouredbyte
 		inz
 		inz
 		bra :++
-:		lda #$0f
+:		lda uifatview_charcolour_light								; set colour to light (white)
 		sta [uidraw_colptr],z
 		inz
 		inz
