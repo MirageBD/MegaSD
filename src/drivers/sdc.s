@@ -7,11 +7,12 @@
 .define sd_address_byte2	$d683
 .define sd_address_byte3	$d684
 
-.define sdc_sectorbuffer	$c000
-
 sdc_sectorcount			.word 0
 
 sdcounter	.byte 0, 0, 0, 0
+
+sdc_readsector_address
+			.dword 0
 
 ; ----------------------------------------------------------------------------------------------------
 

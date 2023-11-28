@@ -216,9 +216,24 @@ userfunc_openfile
 		cpx #$03
 		bne :-
 
+.if megabuild = 1
 		clc															; add cluster_begin_lba (fs_fat32_cluster0_sector + fs_start_sector = $0238+$0800 = $0a38)
-		lda ufoffilesector+0										; $0a38 + 2*0ff8 = $2a28
-		adc #$28
+		lda ufoffilesector+0										; $0a38 + 2*$dd58 = $1c4e8 ($dd58 = sectors per FAT)
+		adc #$e8													; LV TODO - get from MBR / partition
+		sta ufoffilesector+0
+		lda ufoffilesector+1
+		adc #$c4
+		sta ufoffilesector+1
+		lda ufoffilesector+2
+		adc #$01
+		sta ufoffilesector+2
+		lda ufoffilesector+3
+		adc #$00
+		sta ufoffilesector+3
+.else
+		clc															; add cluster_begin_lba (fs_fat32_cluster0_sector + fs_start_sector = $0238+$0800 = $0a38)
+		lda ufoffilesector+0										; $0a38 + 2*0ff8 = $2a28 ($0ff8 = sectors per FAT)
+		adc #$28													; LV TODO - get from MBR / partition
 		sta ufoffilesector+0
 		lda ufoffilesector+1
 		adc #$2a
@@ -229,6 +244,7 @@ userfunc_openfile
 		lda ufoffilesector+3
 		adc #$00
 		sta ufoffilesector+3
+.endif
 
 		UICORE_CALLELEMENTFUNCTION labelsectorfilehi, uihexlabel_draw
 		UICORE_CALLELEMENTFUNCTION labelsectorfilelo, uihexlabel_draw
@@ -255,7 +271,7 @@ userfunc_openfile
 		bne :-
 
 		clc															; add (fs_fat32_system_sectors + fs_start_sector = $0238+$0800 = $0a38)
-		lda ufoffatentsector+0
+		lda ufoffatentsector+0										; LV TODO - get from MBR
 		adc #$38
 		sta ufoffatentsector+0
 		lda ufoffatentsector+1
@@ -302,13 +318,13 @@ userfunc_readsector
         
 		rts
 
-l8		lda $c800+0
+l8		lda sdc_readsector_address+0
 		sta sd_address_byte0							; is $d681
-		lda $c800+1
+		lda sdc_readsector_address+1
 		sta sd_address_byte1							; is $d682
-		lda $c800+2
+		lda sdc_readsector_address+2
 		sta sd_address_byte2							; is $d683
-		lda $c800+3
+		lda sdc_readsector_address+3
 		sta sd_address_byte3							; is $d684
 
 		lda #$41										; set SDHC flag
@@ -327,16 +343,16 @@ l8		lda $c800+0
 userfunc_showdirent
 
 		lda ufofdirentsector+0
-		sta $c800+0
+		sta sdc_readsector_address+0
 		sta nbsectorlouser_data+2
 		lda ufofdirentsector+1
-		sta $c800+1
+		sta sdc_readsector_address+1
 		sta nbsectorlouser_data+3
 		lda ufofdirentsector+2
-		sta $c800+2
+		sta sdc_readsector_address+2
 		sta nbsectorhiuser_data+2
 		lda ufofdirentsector+3
-		sta $c800+3
+		sta sdc_readsector_address+3
 		sta nbsectorhiuser_data+3
 
 		lda ufofdirentoffset+0
@@ -361,16 +377,16 @@ userfunc_showdirent
 userfunc_showfatent
 
 		lda ufoffatentsector+0
-		sta $c800+0
+		sta sdc_readsector_address+0
 		sta nbsectorlouser_data+2
 		lda ufoffatentsector+1
-		sta $c800+1
+		sta sdc_readsector_address+1
 		sta nbsectorlouser_data+3
 		lda ufoffatentsector+2
-		sta $c800+2
+		sta sdc_readsector_address+2
 		sta nbsectorhiuser_data+2
 		lda ufoffatentsector+3
-		sta $c800+3
+		sta sdc_readsector_address+3
 		sta nbsectorhiuser_data+3
 
 		lda ufoffatentoffset+0
@@ -395,16 +411,16 @@ userfunc_showfatent
 userfunc_showfile
 
 		lda ufoffilesector+0
-		sta $c800+0
+		sta sdc_readsector_address+0
 		sta nbsectorlouser_data+2
 		lda ufoffilesector+1
-		sta $c800+1
+		sta sdc_readsector_address+1
 		sta nbsectorlouser_data+3
 		lda ufoffilesector+2
-		sta $c800+2
+		sta sdc_readsector_address+2
 		sta nbsectorhiuser_data+2
 		lda ufoffilesector+3
-		sta $c800+3
+		sta sdc_readsector_address+3
 		sta nbsectorhiuser_data+3
 
 		lda #$00

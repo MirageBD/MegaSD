@@ -1,5 +1,7 @@
 .define screen							$e000	; size = 80*50*2 = $1f40
 
+.define sdc_sectorbuffer				$c000
+.define mbr								$c200
 .define uipal							$c700	; size = $0300
 .define spritepal						$ca00
 .define sprptrs							$cd00
@@ -112,37 +114,20 @@ entry_main
 
 		cli
 
-.macro DEBUG_SECTOR address
-		lda $d681
-		sta address+0
-		lda $d682
-		sta address+1
-		lda $d683
-		sta address+2
-		lda $d684
-		sta address+3
-.endmacro
+		lda #$00
+		sta sdc_readsector_address+0
+		sta sdc_readsector_address+1
+		sta sdc_readsector_address+2
+		sta sdc_readsector_address+3
+		jsr userfunc_readsector				; read MBR
 
-.macro COPY_SECTORBUFFER_TO_MEM address
-.scope
-		ldx #$00
+		ldx #$00							; make copy of MBR for later use
 :		lda $c000+$0000,x
-		sta address+$0000,x
+		sta $c200+$0000,x
 		lda $c000+$0100,x
-		sta address+$0100,x
+		sta $c200+$0100,x
 		inx
 		bne :-
-.endscope
-.endmacro
-
-/*
-		lda #$00
-		sta $c800+0
-		sta $c800+1
-		sta $c800+2
-		sta $c800+3
-		jsr userfunc_readsector				; read MBR
-		COPY_SECTORBUFFER_TO_MEM $c200
 
 		ldx #$00
 :		lda $c200 + mbr_partitionentry1_offset + pe_numberofsectorsbetweenmbrandfirstsectorinpartition_offset,x	; first partition entry
@@ -150,7 +135,6 @@ entry_main
 		inx
 		cpx #$05
 		bne :-
-*/
 
 
 
@@ -204,13 +188,6 @@ entry_main
 
 		jsr sdc_debug_current_sector
 
-		; jmp *
-
-
-
-
-
-
 
 
 
@@ -230,44 +207,14 @@ entry_main
 
 
 		lda #$00										; start at sector 0
-		sta $c800+0
+		sta sdc_readsector_address+0
 		sta nbsectorlouser_data+2
-		sta $c800+1
+		sta sdc_readsector_address+1
 		sta nbsectorlouser_data+3
-		sta $c800+2
+		sta sdc_readsector_address+2
 		sta nbsectorhiuser_data+2
-		sta $c800+3
+		sta sdc_readsector_address+3
 		sta nbsectorhiuser_data+3
-
-
-/*
-		lda #$8f										; or at start of FAT (partition start $0800 + reserved sectors in partition $0238 = $0a38)
-		sta $c800+0
-		sta nbsectorlouser_data+2
-		lda #$0a
-		sta $c800+1
-		sta nbsectorlouser_data+3
-		lda #$00
-		sta $c800+2
-		sta nbsectorhiuser_data+2
-		sta $c800+3
-		sta nbsectorhiuser_data+3
-*/
-														; or start at fileentry
-/*
-		lda $d681
-		sta $c800+0
-		sta nbsectorlouser_data+2
-		lda $d682
-		sta $c800+1
-		sta nbsectorlouser_data+3
-		lda $d683
-		sta $c800+2
-		sta nbsectorhiuser_data+2
-		lda $d684
-		sta $c800+3
-		sta nbsectorhiuser_data+3
-*/
 
 		UICORE_CALLELEMENTFUNCTION nbsectorlouser, uicnumericbutton_draw
 		UICORE_CALLELEMENTFUNCTION nbsectorhiuser, uicnumericbutton_draw
