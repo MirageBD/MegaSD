@@ -14,6 +14,21 @@ sdcounter	.byte 0, 0, 0, 0
 sdc_readsector_address
 			.dword 0
 
+sdc_partition1sector
+			.dword 0									; $0800
+
+sdc_partition1sectorsperfat
+			.dword 0									; 2*$0ff8 in xemu, 2*$dd58 ($1baB0)on machine
+
+sdc_partition1reservedsectors
+			.word 0										; $0238 (OK)
+
+sdc_partition1fatbeginlba
+			.dword 0									; $0a38 (OK)
+
+sdc_partition1clusterbeginlba
+			.dword 0									; $1baB0 + $0a38 = $2c4e8
+
 ; ----------------------------------------------------------------------------------------------------
 
 sdc_debug_current_sector

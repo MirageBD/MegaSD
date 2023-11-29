@@ -61,8 +61,8 @@ fa1filebox_data					.word fa1scrollbar_functions,			filebox1_functions,			fa1scr
 fv1_data						.word $ffff,							$ffff,						0
 
 labelsectorlo_data				.word $ffff,														uitxt_sector
-nbsectorlouser_data				.word readsector_functions,											$0000, $c800, 2, 0, 0, 65535, 0		; value, address, number of bytes, hexadecimal or not, min value, max value, signed offset
-nbsectorhiuser_data				.word readsector_functions,											$0000, $c802, 2, 0, 0, 65535, 0		; value, address, number of bytes, hexadecimal or not, min value, max value, signed offset
+nbsectorlouser_data				.word readsector_functions,											$0000, sdc_readsector_address+0, 2, 0, 0, 65535, 0		; value, address, number of bytes, hexadecimal or not, min value, max value, signed offset
+nbsectorhiuser_data				.word readsector_functions,											$0000, sdc_readsector_address+2, 2, 0, 0, 65535, 0		; value, address, number of bytes, hexadecimal or not, min value, max value, signed offset
 
 labelsectordirent_data			.word $ffff,														uitxt_sectordirent
 labelsectordirenthi_data		.word $ffff,														ufofdirentsector+2, 2
@@ -216,35 +216,19 @@ userfunc_openfile
 		cpx #$03
 		bne :-
 
-.if megabuild = 1
-		clc															; add cluster_begin_lba (fs_fat32_cluster0_sector + fs_start_sector = $0238+$0800 = $0a38)
-		lda ufoffilesector+0										; $0a38 + 2*$dd58 = $1c4e8 ($dd58 = sectors per FAT)
-		adc #$e8													; LV TODO - get from MBR / partition
+		clc															; add cluster_begin_lba
+		lda ufoffilesector+0
+		adc sdc_partition1clusterbeginlba+0
 		sta ufoffilesector+0
 		lda ufoffilesector+1
-		adc #$c4
+		adc sdc_partition1clusterbeginlba+1
 		sta ufoffilesector+1
 		lda ufoffilesector+2
-		adc #$01
+		adc sdc_partition1clusterbeginlba+2
 		sta ufoffilesector+2
 		lda ufoffilesector+3
-		adc #$00
+		adc sdc_partition1clusterbeginlba+3
 		sta ufoffilesector+3
-.else
-		clc															; add cluster_begin_lba (fs_fat32_cluster0_sector + fs_start_sector = $0238+$0800 = $0a38)
-		lda ufoffilesector+0										; $0a38 + 2*0ff8 = $2a28 ($0ff8 = sectors per FAT)
-		adc #$28													; LV TODO - get from MBR / partition
-		sta ufoffilesector+0
-		lda ufoffilesector+1
-		adc #$2a
-		sta ufoffilesector+1
-		lda ufoffilesector+2
-		adc #$00
-		sta ufoffilesector+2
-		lda ufoffilesector+3
-		adc #$00
-		sta ufoffilesector+3
-.endif
 
 		UICORE_CALLELEMENTFUNCTION labelsectorfilehi, uihexlabel_draw
 		UICORE_CALLELEMENTFUNCTION labelsectorfilelo, uihexlabel_draw
@@ -270,18 +254,18 @@ userfunc_openfile
 		cpx #$07
 		bne :-
 
-		clc															; add (fs_fat32_system_sectors + fs_start_sector = $0238+$0800 = $0a38)
-		lda ufoffatentsector+0										; LV TODO - get from MBR
-		adc #$38
+		clc															; add sdc_partition1fatbeginlba
+		lda ufoffatentsector+0
+		adc sdc_partition1fatbeginlba+0
 		sta ufoffatentsector+0
 		lda ufoffatentsector+1
-		adc #$0a
+		adc sdc_partition1fatbeginlba+1
 		sta ufoffatentsector+1
 		lda ufoffatentsector+2
-		adc #$00
+		adc sdc_partition1fatbeginlba+2
 		sta ufoffatentsector+2
 		lda ufoffatentsector+3
-		adc #$00
+		adc sdc_partition1fatbeginlba+3
 		sta ufoffatentsector+3
 
 		UICORE_CALLELEMENTFUNCTION labelsectorfatenthi, uihexlabel_draw

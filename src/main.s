@@ -2,6 +2,7 @@
 
 .define sdc_sectorbuffer				$c000
 .define mbr								$c200
+.define partition1						$c400
 .define uipal							$c700	; size = $0300
 .define spritepal						$ca00
 .define sprptrs							$cd00
@@ -114,30 +115,6 @@ entry_main
 
 		cli
 
-		lda #$00
-		sta sdc_readsector_address+0
-		sta sdc_readsector_address+1
-		sta sdc_readsector_address+2
-		sta sdc_readsector_address+3
-		jsr userfunc_readsector				; read MBR
-
-		ldx #$00							; make copy of MBR for later use
-:		lda $c000+$0000,x
-		sta $c200+$0000,x
-		lda $c000+$0100,x
-		sta $c200+$0100,x
-		inx
-		bne :-
-
-		ldx #$00
-:		lda $c200 + mbr_partitionentry1_offset + pe_numberofsectorsbetweenmbrandfirstsectorinpartition_offset,x	; first partition entry
-		sta $c400,x
-		inx
-		cpx #$05
-		bne :-
-
-
-
 
 		SD_CREATE_FILE 540, "FOO.BIN"		; should normally fail, because file already exists
 		SD_CREATE_FILE 512, "FOO2.BIN"		; should normally fail, because file already exists
@@ -186,9 +163,9 @@ entry_main
 		;SD_FIND_FILE "FOO2.BIN"
 		;SD_RMFILE
 
-		jsr sdc_debug_current_sector
+		;jsr sdc_debug_current_sector
 
-
+		jsr get_sd_stats
 
 
 		sei
@@ -280,3 +257,92 @@ irq1
 		rti
 
 ; ----------------------------------------------------------------------------------------------------
+
+get_sd_stats
+
+		lda #$00
+		sta sdc_readsector_address+0
+		sta sdc_readsector_address+1
+		sta sdc_readsector_address+2
+		sta sdc_readsector_address+3
+		jsr userfunc_readsector				; read MBR
+
+		ldx #$00							; make copy of MBR for later use
+:		lda sdc_sectorbuffer+$0000,x
+		sta mbr+$0000,x
+		lda sdc_sectorbuffer+$0100,x
+		sta mbr+$0100,x
+		inx
+		bne :-
+
+		ldx #$00
+:		lda mbr + mbr_partitionentry1_offset + pe_numberofsectorsbetweenmbrandfirstsectorinpartition_offset,x	; first partition entry
+		sta sdc_partition1sector,x
+		inx
+		cpx #$04
+		bne :-
+
+		lda sdc_partition1sector+0
+		sta sdc_readsector_address+0
+		lda sdc_partition1sector+1
+		sta sdc_readsector_address+1
+		lda sdc_partition1sector+2
+		sta sdc_readsector_address+2
+		lda sdc_partition1sector+3
+		sta sdc_readsector_address+3
+		jsr userfunc_readsector				; read bootrecord of first partition
+
+		ldx #$00							; make copy of bootrecord for later use
+:		lda sdc_sectorbuffer+$0000,x
+		sta partition1+$0000,x
+		lda sdc_sectorbuffer+$0100,x
+		sta partition1+$0100,x
+		inx
+		bne :-
+
+		lda partition1 + bri_reservedsectors_offset+0
+		sta sdc_partition1reservedsectors+0
+		lda partition1 + bri_reservedsectors_offset+1
+		sta sdc_partition1reservedsectors+1
+
+		ldx #$00
+:		lda partition1 + bri_numberofsectorsperfat_offset,x	; first partition entry
+		sta sdc_partition1sectorsperfat,x
+		inx
+		cpx #$04
+		bne :-
+
+		clc													; calculate sdc_partition1fatbeginlba
+		lda sdc_partition1sector+0
+		adc sdc_partition1reservedsectors+0
+		sta sdc_partition1fatbeginlba+0
+		lda sdc_partition1sector+1
+		adc sdc_partition1reservedsectors+1
+		sta sdc_partition1fatbeginlba+1
+		lda sdc_partition1sector+2
+		adc #$00
+		sta sdc_partition1fatbeginlba+2
+		lda sdc_partition1sector+3
+		adc #$00
+		sta sdc_partition1fatbeginlba+3
+
+		asl sdc_partition1sectorsperfat+0					; multiply sectors per fat by 2
+		rol sdc_partition1sectorsperfat+1
+		rol sdc_partition1sectorsperfat+2
+		rol sdc_partition1sectorsperfat+3
+
+		clc													; calculate sdc_partition1fatbeginlba
+		lda sdc_partition1fatbeginlba+0
+		adc sdc_partition1sectorsperfat+0
+		sta sdc_partition1clusterbeginlba+0
+		lda sdc_partition1fatbeginlba+1
+		adc sdc_partition1sectorsperfat+1
+		sta sdc_partition1clusterbeginlba+1
+		lda sdc_partition1fatbeginlba+2
+		adc sdc_partition1sectorsperfat+2
+		sta sdc_partition1clusterbeginlba+2
+		lda sdc_partition1fatbeginlba+3
+		adc sdc_partition1sectorsperfat+3
+		sta sdc_partition1clusterbeginlba+3
+
+		rts
