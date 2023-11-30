@@ -136,19 +136,7 @@ userfunc_openfile
 :		
 		; not a directory. collect data about file.
 
-		jsr uifilebox_getstringptr									; get filename/dir string
-
-		ldx #$00
-		ldy #$03													; skip attributes, file type and length-until-extension
-:		lda (zpptrtmp),y
-		beq :+
-		and #$7f
 		sta sdc_transferbuffer,x
-		iny
-		inx
-		bra :-
-
-:		sta sdc_transferbuffer,x
 		jsr sdc_findfile
 		jsr sdc_fstat
 
